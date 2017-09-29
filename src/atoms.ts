@@ -1,7 +1,8 @@
 import {Store} from "redux";
-import {pathPatch} from "./actions";
+import {pathDelete, pathPatch} from "./actions";
 import {sConnector, sId, sLocator, sParent, sPath, sStore, sTable, sym} from "./util";
 import {TId} from "./types";
+import {genPathSelector, selectByPath} from "./selectors";
 
 export type TModelLocator = (table: string, id: TId) => string[];
 const defaultModelLocator: TModelLocator = (table, id) => [table, String(id)];
@@ -22,9 +23,16 @@ const getPath = (obj) => {
     return obj[sPath]();
 };
 
+const hidden = (obj, key, value) => Object.defineProperty(obj, key, {
+    enumerable: false,
+    writable: true,
+    value,
+});
+
 const setConnector = (obj): Connector => {
     const conn = new Connector;
     conn.obj = obj;
+    hidden(obj, sConnector, conn);
     obj[sConnector] = conn;
     return conn;
 };
@@ -42,6 +50,7 @@ export class Connector {
     table: string;
     locator: TModelLocator;
     key: string;
+    selector: (state) => any;
 
     get Store(): Store<any> {
         return this.store || (this.parent && this.parent.Store);
@@ -60,6 +69,15 @@ export class Connector {
             throw Error('No path set');
         }
     }
+
+    get Selector(): (state) => any {
+        if(!this.selector) this.selector = genPathSelector(this.path());
+        return this.selector;
+    }
+
+    select() {
+        return this.Selector(this.Store.getState());
+    }
 }
 
 const save = (conn: Connector, key: string, value: any) =>
@@ -75,7 +93,7 @@ export function id(store: Store<any>, table: string, locator: TModelLocator = de
             [key]: {
                 get: (): TId => obj[sId],
                 set: (id: TId) => {
-                    obj[sId] = id;
+                    hidden(obj, sId, id);
                     save(conn, key, id);
                 },
             },
@@ -86,20 +104,24 @@ export function id(store: Store<any>, table: string, locator: TModelLocator = de
 export function prop(obj, key: string) {
     const conn = getConnector(obj);
     Object.defineProperty(obj, key, {
+        enumerable: true,
         set: (value) => {
             let propConnector = getConnector(value);
             const sProp = sym('.' + key);
 
             if(propConnector) {
-                obj[sProp] = value;
+                hidden(obj, sProp, value);
                 propConnector.key = key;
                 propConnector.parent = conn;
             } else {
                 const propObj = obj[sProp];
-                if(typeof propObj !== void 0) {
+                if(typeof propObj !== void 0)
                     delete obj[sProp];
+                if(value !== void 0)
+                    save(conn, key, value);
+                else {
+                    conn.Store.dispatch(pathDelete([...conn.path(), key]));
                 }
-                save(conn, key, value);
             }
         },
         get: () => {
@@ -108,7 +130,7 @@ export function prop(obj, key: string) {
             if(value !== void 0) {
                 return value;
             } else {
-                console.log('implement selctor');
+                return conn.select()[key];
             }
         },
     });
