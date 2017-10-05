@@ -1,7 +1,6 @@
 import {createStore} from 'redux';
-import {reduce} from "../src/reducers";
-import {pathPatch} from "../src/actions";
-
+import {reduce} from '../src/reducers';
+import {pathPatch} from '../src/actions';
 
 const store = createStore(reduce, {});
 

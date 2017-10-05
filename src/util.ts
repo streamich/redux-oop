@@ -1,4 +1,3 @@
-
 export const sym = (name: string) => `@@redux-oop/${name}`;
 
 export const sStore = sym('store');

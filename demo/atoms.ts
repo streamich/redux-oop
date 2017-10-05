@@ -1,15 +1,14 @@
-import {id, prop} from "../src/atoms";
-import {reduce} from "../src/reducers";
-import {createStore, applyMiddleware} from "redux";
-import {pathDelete} from "../src/actions";
+import {id, prop} from '../src/atoms';
+import {reduce} from '../src/reducers';
+import {createStore, applyMiddleware} from 'redux';
+import {pathDelete} from '../src/actions';
 
 const logger = store => next => action => {
-    console.log("LOG:", action);
+    console.log('LOG:', action);
     next(action);
 };
 
 const store = createStore(reduce, {}, applyMiddleware(logger as any));
-
 
 class Address {
     @prop street: string;
@@ -17,14 +16,15 @@ class Address {
 }
 
 class User {
-    @id(store, 'users') id: number = 123;
+    @id(store, 'users')
+    id: number = 123;
     @prop name: string;
     @prop age: number;
     @prop deleted = 'del';
-    @prop address: Address = new Address;
+    @prop address: Address = new Address();
 }
 
-const usr = new User;
+const usr = new User();
 usr.name = 'Tester';
 usr.address.street = 'smilsu';
 usr.address.zip = 'LV-1082';
@@ -36,10 +36,9 @@ console.log(usr.age);
 console.log(usr.deleted);
 console.log(usr.address.street);
 
-const usr2 = new User;
+const usr2 = new User();
 usr2.id = 123;
 
 console.log('usr2', usr2.name);
-
 
 console.log(require('util').inspect(store.getState(), false, 6, true));

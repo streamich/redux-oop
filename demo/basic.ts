@@ -1,10 +1,9 @@
 import {createStore} from 'redux';
 import {Model} from '../src/model';
-import {reduce} from "../src/reducers";
-
+import {reduce} from '../src/reducers';
 
 const store = createStore(reduce, {});
-const user = new Model;
+const user = new Model();
 
 user.table = 'users';
 user.id = 123;

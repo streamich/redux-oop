@@ -1,8 +1,17 @@
-import {Store} from "redux";
-import {pathDelete, pathPatch} from "./actions";
-import {sConnector, sId, sLocator, sParent, sPath, sStore, sTable, sym} from "./util";
-import {TId} from "./types";
-import {genPathSelector, selectByPath} from "./selectors";
+import {Store} from 'redux';
+import {pathDelete, pathPatch} from './actions';
+import {
+    sConnector,
+    sId,
+    sLocator,
+    sParent,
+    sPath,
+    sStore,
+    sTable,
+    sym,
+} from './util';
+import {TId} from './types';
+import {genPathSelector, selectByPath} from './selectors';
 
 export type TModelLocator = (table: string, id: TId) => string[];
 const defaultModelLocator: TModelLocator = (table, id) => [table, String(id)];
@@ -15,22 +24,23 @@ const setPath = (obj, path: () => string[]) => {
     obj[sPath] = path;
 };
 
-const getStore = (obj) => {
+const getStore = obj => {
     return obj[sStore]();
 };
 
-const getPath = (obj) => {
+const getPath = obj => {
     return obj[sPath]();
 };
 
-const hidden = (obj, key, value) => Object.defineProperty(obj, key, {
-    enumerable: false,
-    writable: true,
-    value,
-});
+const hidden = (obj, key, value) =>
+    Object.defineProperty(obj, key, {
+        enumerable: false,
+        writable: true,
+        value,
+    });
 
 const setConnector = (obj): Connector => {
-    const conn = new Connector;
+    const conn = new Connector();
     conn.obj = obj;
     hidden(obj, sConnector, conn);
     obj[sConnector] = conn;
@@ -38,8 +48,8 @@ const setConnector = (obj): Connector => {
 };
 
 const getConnector = (obj): Connector => {
-    if(!obj || (typeof obj !== 'object')) return null;
-    if(!obj[sConnector]) return setConnector(obj);
+    if (!obj || typeof obj !== 'object') return null;
+    if (!obj[sConnector]) return setConnector(obj);
     else return obj[sConnector];
 };
 
@@ -61,9 +71,9 @@ export class Connector {
     }
 
     path(): string[] {
-        if(this.locator) {
+        if (this.locator) {
             return this.locator(this.table, this.obj[sId]);
-        } else if(this.parent) {
+        } else if (this.parent) {
             return [...this.parent.path(), this.key];
         } else {
             throw Error('No path set');
@@ -71,7 +81,7 @@ export class Connector {
     }
 
     get Selector(): (state) => any {
-        if(!this.selector) this.selector = genPathSelector(this.path());
+        if (!this.selector) this.selector = genPathSelector(this.path());
         return this.selector;
     }
 
@@ -83,7 +93,11 @@ export class Connector {
 const save = (conn: Connector, key: string, value: any) =>
     conn.Store.dispatch(pathPatch(conn.path(), {[key]: value}));
 
-export function id(store: Store<any>, table: string, locator: TModelLocator = defaultModelLocator) {
+export function id(
+    store: Store<any>,
+    table: string,
+    locator: TModelLocator = defaultModelLocator
+) {
     return (obj, key: string) => {
         const conn = setConnector(obj);
         conn.Store = store;
@@ -105,20 +119,18 @@ export function prop(obj, key: string) {
     const conn = getConnector(obj);
     Object.defineProperty(obj, key, {
         enumerable: true,
-        set: (value) => {
+        set: value => {
             let propConnector = getConnector(value);
             const sProp = sym('.' + key);
 
-            if(propConnector) {
+            if (propConnector) {
                 hidden(obj, sProp, value);
                 propConnector.key = key;
                 propConnector.parent = conn;
             } else {
                 const propObj = obj[sProp];
-                if(typeof propObj !== void 0)
-                    delete obj[sProp];
-                if(value !== void 0)
-                    save(conn, key, value);
+                if (typeof propObj !== void 0) delete obj[sProp];
+                if (value !== void 0) save(conn, key, value);
                 else {
                     conn.Store.dispatch(pathDelete([...conn.path(), key]));
                 }
@@ -127,7 +139,7 @@ export function prop(obj, key: string) {
         get: () => {
             const sProp = sym('.' + key);
             const value = obj[sProp];
-            if(value !== void 0) {
+            if (value !== void 0) {
                 return value;
             } else {
                 return conn.select()[key];

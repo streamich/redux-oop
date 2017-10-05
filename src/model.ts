@@ -1,11 +1,10 @@
-import {patchModel} from "./actions";
+import {patchModel} from './actions';
 
 export class Model {
-
     table = 'model';
     id = 123;
 
-    dispatch = (action) => {
+    dispatch = action => {
         console.log('dispatching....');
     };
 
