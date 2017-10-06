@@ -1,0 +1,12 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`model .set set a single key 1`] = `
+Object {
+  "models": Object {
+    "1": Object {
+      "foo": "bar",
+      "id": 1,
+    },
+  },
+}
+`;

@@ -39,7 +39,7 @@ const hidden = (obj, key, value) =>
         value,
     });
 
-const setConnector = (obj): Connector => {
+export const setConnector = (obj): Connector => {
     const conn = new Connector();
     conn.obj = obj;
     hidden(obj, sConnector, conn);
@@ -47,13 +47,14 @@ const setConnector = (obj): Connector => {
     return conn;
 };
 
-const getConnector = (obj): Connector => {
+export const getConnector = (obj): Connector => {
     if (!obj || typeof obj !== 'object') return null;
     if (!obj[sConnector]) return setConnector(obj);
     else return obj[sConnector];
 };
 
 export class Connector {
+    idKey: string;
     obj: any;
     parent: Connector = null;
     store: Store<any> = null;
@@ -68,6 +69,15 @@ export class Connector {
 
     set Store(store: Store<any>) {
         this.store = store;
+    }
+
+    get Id(): TId {
+        return this.obj[sId];
+    }
+
+    set Id(id: TId) {
+        hidden(this.obj, sId, id);
+        this.patch({[this.idKey]: id});
     }
 
     path(): string[] {
@@ -88,10 +98,19 @@ export class Connector {
     select() {
         return this.Selector(this.Store.getState());
     }
-}
 
-const save = (conn: Connector, key: string, value: any) =>
-    conn.Store.dispatch(pathPatch(conn.path(), {[key]: value}));
+    dispatch(action) {
+        this.Store.dispatch(action);
+    }
+
+    patch(patch: {[key: string]: any}) {
+        this.dispatch(pathPatch(this.path(), patch));
+    }
+
+    del(path: string[]) {
+        this.dispatch(pathDelete(path));
+    }
+}
 
 export function id(
     store: Store<any>,
@@ -103,13 +122,11 @@ export function id(
         conn.Store = store;
         conn.table = table;
         conn.locator = locator;
+        conn.idKey = key;
         Object.defineProperties(obj, {
             [key]: {
-                get: (): TId => obj[sId],
-                set: (id: TId) => {
-                    hidden(obj, sId, id);
-                    save(conn, key, id);
-                },
+                get: (): TId => conn.Id,
+                set: (id: TId) => (conn.Id = id),
             },
         });
     };
@@ -130,7 +147,7 @@ export function prop(obj, key: string) {
             } else {
                 const propObj = obj[sProp];
                 if (typeof propObj !== void 0) delete obj[sProp];
-                if (value !== void 0) save(conn, key, value);
+                if (value !== void 0) conn.patch({[key]: value});
                 else {
                     conn.Store.dispatch(pathDelete([...conn.path(), key]));
                 }
