@@ -48,7 +48,7 @@ export const setConnector = (obj): Connector => {
 };
 
 export const getConnector = (obj): Connector => {
-    if (!obj || typeof obj !== 'object') return null;
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return null;
     if (!obj[sConnector]) return setConnector(obj);
     else return obj[sConnector];
 };
@@ -104,6 +104,9 @@ export class Connector {
     }
 
     patch(patch: {[key: string]: any}) {
+        // Don't patch if model's ID not set yet.
+        if (this.locator && this.Id === void 0) return;
+
         this.dispatch(pathPatch(this.path(), patch));
     }
 
@@ -139,18 +142,15 @@ export function prop(obj, key: string) {
         set: value => {
             let propConnector = getConnector(value);
             const sProp = sym('.' + key);
-
             if (propConnector) {
                 hidden(obj, sProp, value);
                 propConnector.key = key;
                 propConnector.parent = conn;
             } else {
                 const propObj = obj[sProp];
-                if (typeof propObj !== void 0) delete obj[sProp];
+                if (propObj !== void 0) delete obj[sProp];
                 if (value !== void 0) conn.patch({[key]: value});
-                else {
-                    conn.Store.dispatch(pathDelete([...conn.path(), key]));
-                }
+                else conn.del([...conn.path(), key]);
             }
         },
         get: () => {

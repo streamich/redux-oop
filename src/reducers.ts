@@ -4,6 +4,7 @@ export function reducePathPatch(state, {path, patch}) {
     if (!path.length) return {...state, ...patch};
     else {
         const [step, ...restPath] = path;
+        // if (step === void 0) return state;
         return {
             ...state,
             [step]: reducePathPatch(state[step] || {}, {path: restPath, patch}),
