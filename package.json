@@ -1,31 +1,44 @@
 {
-    "scripts": {
-        "test": "jest",
-        "prettier": "prettier --write '**/*.{js,json,css,ts}'",
-        "precommit": "lint-staged"
+  "scripts": {
+    "test": "jest",
+    "prettier": "prettier --write '**/*.{js,json,css,ts}'",
+    "precommit": "lint-staged",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
+  },
+  "lint-staged": {
+    "*.{js,json,css,ts}": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
     },
-    "lint-staged": {
-        "*.{js,json,css,ts}": ["prettier --write", "git add"]
-    },
-    "jest": {
-        "transform": {
-            "^.+\\.tsx?$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
-        },
-        "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
-        "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json"]
-    },
-    "dependencies": {
-        "redux": "3.7.2"
-    },
-    "devDependencies": {
-        "@types/node": "8.5.6",
-        "@types/redux": "3.6.31",
-        "@types/jest": "22.0.1",
-        "husky": "0.14.3",
-        "lint-staged": "4.3.0",
-        "prettier": "1.7.4",
-        "jest": "21.2.1",
-        "ts-jest": "21.2.4",
-        "typescript": "2.6.2"
-    }
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json"
+    ]
+  },
+  "dependencies": {
+    "redux": "3.7.2",
+    "snyk": "^1.189.0"
+  },
+  "devDependencies": {
+    "@types/node": "8.5.6",
+    "@types/redux": "3.6.31",
+    "@types/jest": "22.0.1",
+    "husky": "0.14.3",
+    "lint-staged": "4.3.0",
+    "prettier": "1.7.4",
+    "jest": "21.2.1",
+    "ts-jest": "21.2.4",
+    "typescript": "2.6.2"
+  },
+  "snyk": true
 }
