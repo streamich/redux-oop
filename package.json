@@ -15,7 +15,7 @@
         "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json"]
     },
     "dependencies": {
-        "redux": "3.7.2"
+        "redux": "4.2.1"
     },
     "devDependencies": {
         "@types/node": "8.5.6",
